@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeeSoft Leave Management</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+
+        <div class="logo-section">
+            <img src="assets/neesoft-logo.png" alt="NeeSoft Logo">
+            <div>
+                <h1>NeeSoft Solutions</h1>
+                <p>Leave Management Portal</p>
+            </div>
+        </div>
+
+        <div class="date-section">
+            <span id="currentDate"></span>
+        </div>
+
+    </header>
+
+    <!-- Statistics -->
+    <section class="stats">
+
+        <div class="stat-card">
+            <h2 id="totalCount">0</h2>
+            <p>Total Requests</p>
+        </div>
+
+        <div class="stat-card pending">
+            <h2 id="pendingCount">0</h2>
+            <p>Pending</p>
+        </div>
+
+        <div class="stat-card approved">
+            <h2 id="approvedCount">0</h2>
+            <p>Approved</p>
+        </div>
+
+        <div class="stat-card rejected">
+            <h2 id="rejectedCount">0</h2>
+            <p>Rejected</p>
+        </div>
+
+    </section>
+
+    <!-- Pending Requests -->
+    <section class="requests">
+
+        <div class="section-title">
+
+            <h2>Pending Leave Requests</h2>
+
+        </div>
+
+        <!-- Cards generated using JavaScript -->
+        <div id="leaveContainer"></div>
+
+    </section>
+
+    <script src="js/app.js"></script>
+
+</body>
+</html>
