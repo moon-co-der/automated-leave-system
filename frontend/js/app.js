@@ -88,8 +88,6 @@ async function loadDashboard() {
 
 function updateStatistics(leaves) {
 
-    totalCount.innerText = leaves.length;
-
     pendingCount.innerText =
         leaves.filter(l => l.status === "Pending").length;
 
