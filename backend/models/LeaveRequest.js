@@ -69,6 +69,11 @@ const leaveRequestSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    managerReason: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

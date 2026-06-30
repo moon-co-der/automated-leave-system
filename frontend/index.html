@@ -65,6 +65,44 @@
 
     </section>
 
+    <!-- ============ APPROVE MODAL ============ -->
+    <div id="approveModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="approveModalTitle">
+        <div class="modal">
+            <h3 id="approveModalTitle">Approve Leave</h3>
+            <label for="approveReason">Optional Message</label>
+            <textarea
+                id="approveReason"
+                placeholder="Example: Enjoy your vacation!"
+                rows="4"
+            ></textarea>
+            <div class="modal-actions">
+                <button id="approveCancelBtn" class="modal-cancel-btn" onclick="closeModal('approveModal')">Cancel</button>
+                <button id="approveConfirmBtn" class="modal-approve-btn" onclick="confirmApprove()">Approve</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ REJECT MODAL ============ -->
+    <div id="rejectModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="rejectModalTitle">
+        <div class="modal">
+            <h3 id="rejectModalTitle">Reject Leave</h3>
+            <label for="rejectReason">Reason <span class="required">*</span></label>
+            <textarea
+                id="rejectReason"
+                placeholder="Example: Project deadline this week."
+                rows="4"
+            ></textarea>
+            <p id="rejectReasonError" class="field-error" style="display:none;">Please provide a reason.</p>
+            <div class="modal-actions">
+                <button id="rejectCancelBtn" class="modal-cancel-btn" onclick="closeModal('rejectModal')">Cancel</button>
+                <button id="rejectConfirmBtn" class="modal-reject-btn" onclick="confirmReject()">Reject</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ TOAST ============ -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
     <script src="js/app.js"></script>
 
 </body>

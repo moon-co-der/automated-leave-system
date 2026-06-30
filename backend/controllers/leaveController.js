@@ -3,6 +3,43 @@ const Employee = require("../models/Employee");
 const generateLeaveId = require("../utils/generateLeaveId");
 
 // ==============================
+// n8n Webhook Helper
+// ==============================
+
+const N8N_WEBHOOK_URL =
+  "https://neesoftltd.app.n8n.cloud/webhook/da72ab76-6310-49b0-9972-b3ad388b2c48";
+
+async function triggerN8nWebhook(payload) {
+  try {
+    console.log("========== n8n Webhook ==========");
+    console.log("Sending payload:");
+    console.log(JSON.stringify(payload, null, 2));
+
+    const response = await fetch(N8N_WEBHOOK_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    console.log("Webhook Status:", response.status);
+
+    const responseText = await response.text();
+    console.log("Webhook Response:", responseText);
+
+    if (!response.ok) {
+      throw new Error(`Webhook failed with status ${response.status}`);
+    }
+
+    console.log("✅ n8n Webhook Triggered Successfully");
+  } catch (error) {
+    console.error("❌ n8n Webhook Error:");
+    console.error(error);
+  }
+}
+
+// ==============================
 // Create Leave Request
 // ==============================
 
@@ -146,8 +183,20 @@ const approveLeaveRequest = async (req, res) => {
 
         leave.status = "Approved";
         leave.approvedAt = new Date();
+        leave.managerReason = req.body.managerReason || "";
 
         await leave.save();
+
+        // Fire n8n webhook (non-blocking)
+        await triggerN8nWebhook({
+    employeeName: leave.employeeName,
+    employeeEmail: leave.employeeEmail,
+    leaveType: leave.leaveType,
+    fromDate: leave.fromDate,
+    toDate: leave.toDate,
+    status: leave.status,
+    managerReason: leave.managerReason
+});
 
         res.status(200).json({
             success: true,
@@ -186,8 +235,20 @@ const rejectLeaveRequest = async (req, res) => {
         }
 
         leave.status = "Rejected";
+        leave.managerReason = req.body.managerReason || "";
 
         await leave.save();
+
+        // Fire n8n webhook (non-blocking)
+        await triggerN8nWebhook({
+    employeeName: leave.employeeName,
+    employeeEmail: leave.employeeEmail,
+    leaveType: leave.leaveType,
+    fromDate: leave.fromDate,
+    toDate: leave.toDate,
+    status: leave.status,
+    managerReason: leave.managerReason
+});
 
         res.status(200).json({
             success: true,

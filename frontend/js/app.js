@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api/leaves";
+const API_URL = "https://automated-leave-system.vercel.app/api/leaves";
 
 const leaveContainer = document.getElementById("leaveContainer");
 
@@ -16,6 +16,45 @@ document.getElementById("currentDate").innerText =
         month: "long",
         year: "numeric"
     });
+
+
+// ---------------- MODAL STATE ----------------
+
+let pendingLeaveId = null;
+
+
+// ---------------- MODAL HELPERS ----------------
+
+function openModal(modalId) {
+    document.getElementById(modalId).classList.add("open");
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove("open");
+    if (modalId === "approveModal") {
+        document.getElementById("approveReason").value = "";
+    }
+    if (modalId === "rejectModal") {
+        document.getElementById("rejectReason").value = "";
+        document.getElementById("rejectReasonError").style.display = "none";
+    }
+}
+
+
+// ---------------- TOAST ----------------
+
+function showToast(message, type = "success") {
+
+    const toast = document.getElementById("toast");
+
+    toast.textContent = message;
+    toast.className = `toast ${type} show`;
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+    }, 3500);
+
+}
 
 
 // ---------------- LOAD DASHBOARD ----------------
@@ -88,6 +127,8 @@ function displayPendingLeaves(leaves) {
         const card = document.createElement("div");
 
         card.className = "leave-card";
+
+        const isPending = leave.status === "Pending";
 
         card.innerHTML = `
 
@@ -172,7 +213,9 @@ function displayPendingLeaves(leaves) {
 
             <button
                 class="approve-btn"
-                onclick="approveLeave('${leave._id}')">
+                id="approve-${leave._id}"
+                onclick="openApproveModal('${leave._id}')"
+                ${!isPending ? "disabled" : ""}>
 
                 Approve
 
@@ -180,7 +223,9 @@ function displayPendingLeaves(leaves) {
 
             <button
                 class="reject-btn"
-                onclick="rejectLeave('${leave._id}')">
+                id="reject-${leave._id}"
+                onclick="openRejectModal('${leave._id}')"
+                ${!isPending ? "disabled" : ""}>
 
                 Reject
 
@@ -198,36 +243,104 @@ function displayPendingLeaves(leaves) {
 
 
 
-// ---------------- APPROVE ----------------
+// ---------------- OPEN APPROVE MODAL ----------------
 
-async function approveLeave(id) {
+function openApproveModal(id) {
+    pendingLeaveId = id;
+    document.getElementById("approveReason").value = "";
+    openModal("approveModal");
+}
 
-    await fetch(`${API_URL}/${id}/approve`, {
 
-        method: "PUT"
+// ---------------- OPEN REJECT MODAL ----------------
 
-    });
+function openRejectModal(id) {
+    pendingLeaveId = id;
+    document.getElementById("rejectReason").value = "";
+    document.getElementById("rejectReasonError").style.display = "none";
+    openModal("rejectModal");
+}
+
+
+// ---------------- CONFIRM APPROVE ----------------
+
+async function confirmApprove() {
+
+    const managerReason = document.getElementById("approveReason").value.trim();
+
+    closeModal("approveModal");
+
+    try {
+
+        const response = await fetch(`${API_URL}/${pendingLeaveId}/approve`, {
+
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ managerReason })
+
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showToast("✅ Leave approved successfully!", "success");
+        } else {
+            showToast("❌ Failed to approve leave.", "error");
+        }
+
+    } catch (error) {
+
+        console.error(error);
+        showToast("❌ Something went wrong.", "error");
+
+    }
 
     loadDashboard();
 
 }
 
 
+// ---------------- CONFIRM REJECT ----------------
 
-// ---------------- REJECT ----------------
+async function confirmReject() {
 
-async function rejectLeave(id) {
+    const managerReason = document.getElementById("rejectReason").value.trim();
 
-    await fetch(`${API_URL}/${id}/reject`, {
+    if (!managerReason) {
+        document.getElementById("rejectReasonError").style.display = "block";
+        return;
+    }
 
-        method: "PUT"
+    closeModal("rejectModal");
 
-    });
+    try {
+
+        const response = await fetch(`${API_URL}/${pendingLeaveId}/reject`, {
+
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ managerReason })
+
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showToast("🚫 Leave rejected.", "success");
+        } else {
+            showToast("❌ Failed to reject leave.", "error");
+        }
+
+    } catch (error) {
+
+        console.error(error);
+        showToast("❌ Something went wrong.", "error");
+
+    }
 
     loadDashboard();
 
 }
-
 
 
 // ---------------- FORMAT DATE ----------------
