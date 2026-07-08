@@ -1,3 +1,4 @@
+const axios = require("axios");
 const LeaveRequest = require("../models/LeaveRequest");
 const Employee = require("../models/Employee");
 const generateLeaveId = require("../utils/generateLeaveId");
@@ -10,32 +11,26 @@ const N8N_WEBHOOK_URL =
   "https://neesoftltd.app.n8n.cloud/webhook/da72ab76-6310-49b0-9972-b3ad388b2c48";
 
 async function triggerN8nWebhook(payload) {
-  try {
-    console.log("========== n8n Webhook ==========");
-    console.log("Sending payload:");
-    console.log(JSON.stringify(payload, null, 2));
+  console.log("========== n8n Webhook ==========");
+  console.log("Webhook URL:", N8N_WEBHOOK_URL);
+  console.log("Payload:", JSON.stringify(payload, null, 2));
 
-    const response = await fetch(N8N_WEBHOOK_URL, {
-      method: "POST",
+  try {
+    const response = await axios.post(N8N_WEBHOOK_URL, payload, {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload),
     });
 
     console.log("Webhook Status:", response.status);
-
-    const responseText = await response.text();
-    console.log("Webhook Response:", responseText);
-
-    if (!response.ok) {
-      throw new Error(`Webhook failed with status ${response.status}`);
-    }
-
+    console.log("Webhook Response:", response.data);
     console.log("✅ n8n Webhook Triggered Successfully");
   } catch (error) {
     console.error("❌ n8n Webhook Error:");
-    console.error(error);
+    console.error("response.data:", error.response?.data);
+    console.error("response.status:", error.response?.status);
+    console.error("message:", error.message);
+    throw error;
   }
 }
 
@@ -172,6 +167,9 @@ const approveLeaveRequest = async (req, res) => {
 
     try {
 
+        console.log("Approve leave request invoked for id:", req.params.id);
+        console.log("Request body:", req.body);
+
         const leave = await LeaveRequest.findById(req.params.id);
 
         if (!leave) {
@@ -187,16 +185,20 @@ const approveLeaveRequest = async (req, res) => {
 
         await leave.save();
 
-        // Fire n8n webhook (non-blocking)
+        // Fire n8n webhook after successful approval
         await triggerN8nWebhook({
-    employeeName: leave.employeeName,
-    employeeEmail: leave.employeeEmail,
-    leaveType: leave.leaveType,
-    fromDate: leave.fromDate,
-    toDate: leave.toDate,
-    status: leave.status,
-    managerReason: leave.managerReason
-});
+            leaveId: leave.leaveId,
+            employeeId: leave.employeeId,
+            employeeName: leave.employeeName,
+            employeeEmail: leave.employeeEmail,
+            department: leave.department,
+            leaveType: leave.leaveType,
+            fromDate: leave.fromDate,
+            toDate: leave.toDate,
+            reason: leave.reason,
+            status: leave.status,
+            managerReason: leave.managerReason
+        });
 
         res.status(200).json({
             success: true,
@@ -225,6 +227,9 @@ const rejectLeaveRequest = async (req, res) => {
 
     try {
 
+        console.log("Reject leave request invoked for id:", req.params.id);
+        console.log("Request body:", req.body);
+
         const leave = await LeaveRequest.findById(req.params.id);
 
         if (!leave) {
@@ -239,16 +244,20 @@ const rejectLeaveRequest = async (req, res) => {
 
         await leave.save();
 
-        // Fire n8n webhook (non-blocking)
+        // Fire n8n webhook after successful rejection
         await triggerN8nWebhook({
-    employeeName: leave.employeeName,
-    employeeEmail: leave.employeeEmail,
-    leaveType: leave.leaveType,
-    fromDate: leave.fromDate,
-    toDate: leave.toDate,
-    status: leave.status,
-    managerReason: leave.managerReason
-});
+            leaveId: leave.leaveId,
+            employeeId: leave.employeeId,
+            employeeName: leave.employeeName,
+            employeeEmail: leave.employeeEmail,
+            department: leave.department,
+            leaveType: leave.leaveType,
+            fromDate: leave.fromDate,
+            toDate: leave.toDate,
+            reason: leave.reason,
+            status: leave.status,
+            managerReason: leave.managerReason
+        });
 
         res.status(200).json({
             success: true,

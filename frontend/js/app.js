@@ -270,6 +270,9 @@ async function confirmApprove() {
 
     try {
 
+        console.log("Approving leave ID:", pendingLeaveId, "via", `${API_URL}/${pendingLeaveId}/approve`);
+        console.log("Approval managerReason:", managerReason);
+
         const response = await fetch(`${API_URL}/${pendingLeaveId}/approve`, {
 
             method: "PUT",
@@ -278,7 +281,11 @@ async function confirmApprove() {
 
         });
 
+        console.log("Approve response status:", response.status);
+
         const result = await response.json();
+
+        console.log("Approve response body:", result);
 
         if (result.success) {
             showToast("✅ Leave approved successfully!", "success");
